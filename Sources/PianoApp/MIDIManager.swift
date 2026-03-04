@@ -6,12 +6,16 @@ final class MIDIManager: ObservableObject {
 
     private var midiClient = MIDIClientRef()
     private var inputPort = MIDIPortRef()
+    private var connectedSources: Set<MIDIEndpointRef> = []
     private var audioEngine: AudioEngine?
+    private var started = false
 
     func start(audioEngine: AudioEngine) {
+        guard !started else { return }
+        started = true
         self.audioEngine = audioEngine
 
-        var status = MIDIClientCreateWithBlock("PianoApp" as CFString, &midiClient) { [weak self] notification in
+        var status = MIDIClientCreateWithBlock("JustPlayPiano" as CFString, &midiClient) { [weak self] notification in
             self?.handleMIDINotification(notification)
         }
         guard status == noErr else {
@@ -36,16 +40,26 @@ final class MIDIManager: ObservableObject {
     }
 
     private func connectAllSources() {
+        // Disconnect existing sources to prevent duplicate events
+        for source in connectedSources {
+            MIDIPortDisconnectSource(inputPort, source)
+        }
+        connectedSources.removeAll()
+
         let sourceCount = MIDIGetNumberOfSources()
         var names: [String] = []
 
         for i in 0..<sourceCount {
             let source = MIDIGetSource(i)
-            MIDIPortConnectSource(inputPort, source, nil)
-
-            if let name = getMIDIObjectName(source) {
-                names.append(name)
-                print("Connected to MIDI source: \(name)")
+            let status = MIDIPortConnectSource(inputPort, source, nil)
+            if status == noErr {
+                connectedSources.insert(source)
+                if let name = getMIDIObjectName(source) {
+                    names.append(name)
+                    print("Connected to MIDI source: \(name)")
+                }
+            } else {
+                print("Failed to connect MIDI source \(i): \(status)")
             }
         }
 

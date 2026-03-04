@@ -12,6 +12,7 @@ final class AudioEngine {
     init() {
         engine.attach(sampler)
         engine.connect(sampler, to: engine.mainMixerNode, format: nil)
+        // Salamander SF2 samples are recorded at low levels; +12 dB brings them to a comfortable volume
         sampler.overallGain = 12.0
 
         do {

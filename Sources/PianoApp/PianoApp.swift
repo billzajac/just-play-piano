@@ -4,7 +4,7 @@ import SwiftUI
 struct PianoApp: App {
     @StateObject private var soundFontManager = SoundFontManager()
     @StateObject private var midiManager = MIDIManager()
-    private let audioEngine = AudioEngine()
+    @State private var audioEngine = AudioEngine()
 
     var body: some Scene {
         WindowGroup {
@@ -12,12 +12,14 @@ struct PianoApp: App {
                 switch soundFontManager.state {
                 case .checking:
                     ProgressView("Checking sound font...")
-                        .onAppear { soundFontManager.ensureSoundFont() }
 
                 case .downloading(let progress):
                     VStack(spacing: 12) {
                         Text("Downloading Piano Sounds")
                             .font(.headline)
+                        Text("One-time download, ~24 MB")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         ProgressView(value: progress)
                             .frame(width: 200)
                         Text("\(Int(progress * 100))%")
@@ -35,17 +37,20 @@ struct PianoApp: App {
                         Image(systemName: "exclamationmark.triangle")
                             .font(.largeTitle)
                             .foregroundStyle(.orange)
+                            .accessibilityHidden(true)
                         Text("Failed to load sound font")
                             .font(.headline)
                         Text(message)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
-                        HStack {
+                            .frame(maxWidth: 280)
+                        HStack(spacing: 12) {
                             Button("Retry") { soundFontManager.retry() }
-                            Button("Use Default Sound") {
+                                .buttonStyle(.borderedProminent)
+                            Button("Use Default (Lower Quality)") {
                                 audioEngine.loadGMFallback()
-                                soundFontManager.state = .ready(SoundFontManager.soundFontURL)
+                                soundFontManager.useDefaultSound()
                             }
                         }
                     }
@@ -53,7 +58,7 @@ struct PianoApp: App {
                 }
             }
         }
-        .defaultSize(width: 360, height: 240)
+        .defaultSize(width: 360, height: 260)
     }
 }
 
@@ -84,6 +89,7 @@ struct ContentView: View {
                 Slider(value: $volume, in: 0...1) { _ in
                     audioEngine.volume = volume
                 }
+                .accessibilityLabel("Volume")
                 Image(systemName: "speaker.wave.3.fill")
             }
             .padding(.horizontal)
