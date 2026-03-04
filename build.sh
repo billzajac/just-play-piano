@@ -87,11 +87,14 @@ DMG_TMP="$BUILD_DIR/dmg-tmp"
 DMG_RW="$BUILD_DIR/rw.dmg"
 VOLNAME="Airship Piano"
 
+# Force-unmount any stale volume with our name
+hdiutil detach "/Volumes/$VOLNAME" -force 2>/dev/null || true
 rm -f "$DMG_PATH" "$DMG_RW"
 rm -rf "$DMG_TMP"
 mkdir -p "$DMG_TMP"
 cp -R "$APP_DIR" "$DMG_TMP/"
-ln -s /Applications "$DMG_TMP/Applications"
+# Don't add Applications symlink here — we create a Finder alias below
+# so it gets the proper Applications folder icon
 
 # Create read-write HFS+ DMG
 hdiutil create -volname "$VOLNAME" \
@@ -104,7 +107,9 @@ hdiutil create -volname "$VOLNAME" \
 # Mount and let Finder bake in the layout
 DEVICE=$(hdiutil attach "$DMG_RW" 2>&1 | grep "/Volumes/" | head -1 | cut -f1 | tr -d '[:space:]')
 
-echo "Configuring DMG layout (Finder will briefly flash)..."
+sleep 2
+
+echo "Configuring DMG layout..."
 osascript << APPLESCRIPT
 tell application "Finder"
     tell disk "$VOLNAME"
@@ -116,8 +121,13 @@ tell application "Finder"
         set viewOptions to the icon view options of container window
         set icon size of viewOptions to 128
         set arrangement of viewOptions to not arranged
+        -- Create a real Finder alias (not a symlink) so the icon renders correctly
+        make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
+        delay 1
         set position of item "$APP_NAME.app" of container window to {140, 190}
         set position of item "Applications" of container window to {400, 190}
+        update without registering applications
+        delay 2
         close
     end tell
 end tell
