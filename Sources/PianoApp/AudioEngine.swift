@@ -10,6 +10,15 @@ final class AudioEngine {
     }
 
     init() {
+        #if os(iOS)
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error)")
+        }
+        #endif
+
         engine.attach(sampler)
         engine.connect(sampler, to: engine.mainMixerNode, format: nil)
         // Salamander SF2 samples are recorded at low levels; +12 dB brings them to a comfortable volume
@@ -42,6 +51,7 @@ final class AudioEngine {
     }
 
     func loadGMFallback() {
+        #if os(macOS)
         let gmPaths = [
             "/Library/Audio/Sounds/Banks/gs_instruments.dls",
             "/System/Library/Components/CoreAudio.component/Contents/Resources/gs_instruments.dls"
@@ -62,6 +72,7 @@ final class AudioEngine {
                 }
             }
         }
+        #endif
         print("Warning: No sound bank found, using default sampler")
     }
 

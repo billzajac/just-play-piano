@@ -1,0 +1,56 @@
+name: AirshipPiano
+options:
+  bundleIdPrefix: com.billzajac
+  deploymentTarget:
+    macOS: "13.0"
+    iOS: "16.0"
+  xcodeVersion: "26.3"
+
+targets:
+  AirshipPiano-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/PianoApp
+    settings:
+      base:
+        PRODUCT_NAME: Airship Piano
+        PRODUCT_BUNDLE_IDENTIFIER: com.billzajac.airshippiano
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
+        INFOPLIST_KEY_NSHighResolutionCapable: true
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: true
+        ENABLE_HARDENED_RUNTIME: false
+        CODE_SIGN_IDENTITY: "-"
+
+  AirshipPiano-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/PianoApp
+    settings:
+      base:
+        PRODUCT_NAME: Airship Piano
+        PRODUCT_BUNDLE_IDENTIFIER: com.billzajac.airshippiano
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Airship Piano uses Bluetooth to connect to MIDI keyboards."
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: true
+        DEVELOPMENT_TEAM: FT574Q62GF
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: Automatic
+      configs:
+        debug:
+          CODE_SIGN_IDENTITY: "Apple Development"
+        release:
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+    entitlements:
+      path: Sources/PianoApp/iOS.entitlements

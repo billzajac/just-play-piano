@@ -3,11 +3,13 @@ import PackageDescription
 
 let package = Package(
     name: "PianoApp",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v13), .iOS(.v16)],
     targets: [
         .executableTarget(
             name: "PianoApp",
-            path: "Sources/PianoApp"
+            path: "Sources/PianoApp",
+            exclude: ["iOS.entitlements"],
+            resources: [.process("Assets.xcassets")]
         )
     ]
 )
