@@ -7,3 +7,13 @@ xcuserdata/
 *.xcarchive
 *.ipa
 *.env
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.cxx/
+*.aab
+*.apk
+*.jks
