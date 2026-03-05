@@ -44,6 +44,7 @@ targets:
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Airship Piano uses Bluetooth to connect to MIDI keyboards."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: false
         DEVELOPMENT_TEAM: NNE5EA54L2
         CODE_SIGN_STYLE: Automatic
     entitlements:
