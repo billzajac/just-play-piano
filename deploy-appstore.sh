@@ -4,7 +4,7 @@ set -euo pipefail
 # Airship Piano — App Store Deploy Script
 # Usage: ./deploy-appstore.sh [patch|minor|major|build]
 #
-# Builds, archives, exports IPA, and uploads to App Store Connect.
+# Builds, archives, and uploads both iOS and macOS to App Store Connect.
 # After upload, submit for review at https://appstoreconnect.apple.com
 # Credentials loaded from ~/home/airship-piano.env
 
@@ -27,11 +27,15 @@ done
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
-SCHEME="AirshipPiano-iOS"
 PROJECT="AirshipPiano.xcodeproj"
-ARCHIVE_PATH="build/AirshipPiano.xcarchive"
-EXPORT_PATH="build/ipa"
 INCREMENT="${1:-build}"
+
+AUTH_FLAGS=(
+    -allowProvisioningUpdates
+    -authenticationKeyPath "$APPLE_CONNECT_PRIVATE_KEY_PATH"
+    -authenticationKeyID "$APPLE_CONNECT_API_KEY"
+    -authenticationKeyIssuerID "$APPLE_CONNECT_API_ISSUER_ID"
+)
 
 # ─── Step 1: Version Bumping ─────────────────────────────────────────────────
 
@@ -72,50 +76,85 @@ else
     exit 1
 fi
 
-# ─── Step 3: Archive ─────────────────────────────────────────────────────────
+# ─── Step 3: Archive & Upload iOS ────────────────────────────────────────────
 
-echo "Archiving for App Store..."
-rm -rf "$ARCHIVE_PATH" "$EXPORT_PATH"
+echo ""
+echo "========== iOS =========="
+
+IOS_ARCHIVE="build/AirshipPiano-iOS.xcarchive"
+IOS_EXPORT="build/ios-export"
+
+echo "Archiving iOS..."
+rm -rf "$IOS_ARCHIVE" "$IOS_EXPORT"
 
 xcodebuild archive \
     -project "$PROJECT" \
-    -scheme "$SCHEME" \
+    -scheme "AirshipPiano-iOS" \
     -configuration Release \
-    -archivePath "$ARCHIVE_PATH" \
+    -archivePath "$IOS_ARCHIVE" \
     -destination "generic/platform=iOS" \
-    -allowProvisioningUpdates \
-    -authenticationKeyPath "$APPLE_CONNECT_PRIVATE_KEY_PATH" \
-    -authenticationKeyID "$APPLE_CONNECT_API_KEY" \
-    -authenticationKeyIssuerID "$APPLE_CONNECT_API_ISSUER_ID" \
+    "${AUTH_FLAGS[@]}" \
     DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-    2>&1 | tail -20
+    2>&1 | tail -5
 
-if [ ! -d "$ARCHIVE_PATH" ]; then
-    echo "Error: Archive failed"
+if [ ! -d "$IOS_ARCHIVE" ]; then
+    echo "Error: iOS archive failed"
     exit 1
 fi
 
-echo "Archive created: $ARCHIVE_PATH"
-
-# ─── Step 4: Export IPA & Upload to App Store Connect ─────────────────────────
-
-echo "Exporting IPA and uploading to App Store Connect..."
-
+echo "Uploading iOS..."
 xcodebuild -exportArchive \
-    -archivePath "$ARCHIVE_PATH" \
-    -exportPath "$EXPORT_PATH" \
+    -archivePath "$IOS_ARCHIVE" \
+    -exportPath "$IOS_EXPORT" \
     -exportOptionsPlist ExportOptions.plist \
-    -allowProvisioningUpdates \
-    -authenticationKeyPath "$APPLE_CONNECT_PRIVATE_KEY_PATH" \
-    -authenticationKeyID "$APPLE_CONNECT_API_KEY" \
-    -authenticationKeyIssuerID "$APPLE_CONNECT_API_ISSUER_ID" \
-    2>&1 | tail -20
+    "${AUTH_FLAGS[@]}" \
+    2>&1 | tail -10
+
+echo "iOS upload complete."
+
+# ─── Step 4: Archive & Upload macOS ──────────────────────────────────────────
+
+echo ""
+echo "========== macOS =========="
+
+MACOS_ARCHIVE="build/AirshipPiano-macOS.xcarchive"
+MACOS_EXPORT="build/macos-export"
+
+echo "Archiving macOS..."
+rm -rf "$MACOS_ARCHIVE" "$MACOS_EXPORT"
+
+xcodebuild archive \
+    -project "$PROJECT" \
+    -scheme "AirshipPiano-macOS" \
+    -configuration Release \
+    -archivePath "$MACOS_ARCHIVE" \
+    -destination "generic/platform=macOS" \
+    "${AUTH_FLAGS[@]}" \
+    DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+    2>&1 | tail -5
+
+if [ ! -d "$MACOS_ARCHIVE" ]; then
+    echo "Error: macOS archive failed"
+    exit 1
+fi
+
+echo "Uploading macOS..."
+xcodebuild -exportArchive \
+    -archivePath "$MACOS_ARCHIVE" \
+    -exportPath "$MACOS_EXPORT" \
+    -exportOptionsPlist ExportOptions.plist \
+    "${AUTH_FLAGS[@]}" \
+    2>&1 | tail -10
+
+echo "macOS upload complete."
+
+# ─── Done ────────────────────────────────────────────────────────────────────
 
 echo ""
 echo "=== SUCCESS ==="
-echo "Airship Piano ${new_marketing}(${new_build}) uploaded to App Store Connect!"
+echo "Airship Piano ${new_marketing}(${new_build}) uploaded for iOS + macOS!"
 echo ""
 echo "Next steps:"
-echo "  1. Wait 5-15 minutes for Apple to process the build"
+echo "  1. Wait 5-15 minutes for Apple to process the builds"
 echo "  2. Go to https://appstoreconnect.apple.com"
-echo "  3. Select the build and submit for review"
+echo "  3. Select builds and submit for review"
