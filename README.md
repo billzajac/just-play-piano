@@ -13,7 +13,7 @@ That's what this is. A tiny app that connects to your MIDI keyboard and plays pi
 | Platform | Link |
 |----------|------|
 | iOS / iPadOS | [![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/us/app/airship-piano/id6760140844) |
-| Mac App Store | [![Download on the Mac App Store](https://developer.apple.com/assets/elements/badges/download-on-the-mac-app-store.svg)](https://apps.apple.com/us/app/airship-piano/id6760140844) |
+| Mac App Store | [![Download on the Mac App Store](https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-mac-app-store.svg)](https://apps.apple.com/us/app/airship-piano/id6760140844) |
 | Android | [![Get it on Google Play](https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg)](https://play.google.com/store/apps/details?id=com.windupairships.airshippiano) *Coming Soon* |
 
 ### Direct Download (macOS)
